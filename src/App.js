@@ -13,10 +13,25 @@ function App() {
 
 
 
+  // const handleLoginSuccess = async (credentialResponse) => {
+  //   setAccessToken(credentialResponse.access_token);
+  //   setIsAuthenticated(true);
+  //   await fetchEmails(credentialResponse.access_token);
+  // };
+
   const handleLoginSuccess = async (credentialResponse) => {
-    setAccessToken(credentialResponse.access_token);
-    setIsAuthenticated(true);
-    await fetchEmails(credentialResponse.access_token);
+    console.log('Credential Response:', credentialResponse);
+    if (credentialResponse.access_token) {
+      setAccessToken(credentialResponse.access_token);
+      setIsAuthenticated(true);
+      try {
+        await fetchEmails(credentialResponse.access_token);
+      } catch (error) {
+        console.error('Error in fetchEmails:', error);
+      }
+    } else {
+      console.error('No access token received');
+    }
   };
 
   const handleLoginFailure = () => {
@@ -25,6 +40,7 @@ function App() {
 
   const fetchEmails = async (token) => {
     try {
+      console.log('Using token:', token);
       const response = await axios.get(
         'https://www.googleapis.com/gmail/v1/users/me/messages',
         {
@@ -72,7 +88,7 @@ function App() {
 
       setEmailData({ applications: applicationEmails, rejections: rejectionEmails });
     } catch (error) {
-      console.error('Error fetching emails:', error);
+      console.error('Error fetching emails:', error.response ? error.response.data : error.message);
     }
   };
 
@@ -82,8 +98,9 @@ function App() {
         <h1 className="text-3xl font-bold mb-4">Gmail Job Tracker</h1>
         {!isAuthenticated ? (
           <GoogleLogin
-            onSuccess={handleLoginSuccess}
-            onError={handleLoginFailure}
+          onSuccess={handleLoginSuccess}
+          onError={handleLoginFailure}
+          scope="https://www.googleapis.com/auth/gmail.readonly"
           />
         ) : (
           <EmailStats emailData={emailData} />
