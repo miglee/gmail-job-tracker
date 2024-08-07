@@ -1,24 +1,92 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import axios from 'axios';
+import EmailStats from './EmailStats';
+
+const GOOGLE_CLIENT_ID = '677057704680-c7bf3m37umib4i50a1euvdptcnm4k7gk.apps.googleusercontent.com';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [emailData, setEmailData] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+
+  const handleLoginSuccess = async (credentialResponse) => {
+    setAccessToken(credentialResponse.access_token);
+    setIsAuthenticated(true);
+    await fetchEmails(credentialResponse.access_token);
+  };
+
+  const handleLoginFailure = () => {
+    console.log('Login Failed');
+  };
+
+  const fetchEmails = async (token) => {
+    try {
+      const response = await axios.get(
+        'https://www.googleapis.com/gmail/v1/users/me/messages',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            q: 'after:' + new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+        }
+      );
+
+      const messages = response.data.messages;
+      const applicationEmails = [];
+      const rejectionEmails = [];
+
+      for (const message of messages) {
+        const emailData = await axios.get(
+          `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const subject = emailData.data.payload.headers.find(
+          (header) => header.name === 'Subject'
+        ).value;
+
+        if (subject.toLowerCase().includes('application confirmation')) {
+          applicationEmails.push({
+            id: message.id,
+            subject,
+            company: 'Company Name', // You'd need to extract this from the email content
+          });
+        } else if (subject.toLowerCase().includes('application status') || subject.toLowerCase().includes('thank you for your interest')) {
+          rejectionEmails.push({
+            id: message.id,
+            subject,
+            company: 'Company Name', // You'd need to extract this from the email content
+          });
+        }
+      }
+
+      setEmailData({ applications: applicationEmails, rejections: rejectionEmails });
+    } catch (error) {
+      console.error('Error fetching emails:', error);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-4">Gmail Job Tracker</h1>
+        {!isAuthenticated ? (
+          <GoogleLogin
+            onSuccess={handleLoginSuccess}
+            onError={handleLoginFailure}
+          />
+        ) : (
+          <EmailStats emailData={emailData} />
+        )}
+      </div>
+    </GoogleOAuthProvider>
   );
 }
 
