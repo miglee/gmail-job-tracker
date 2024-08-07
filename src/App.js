@@ -19,18 +19,33 @@ function App() {
   //   await fetchEmails(credentialResponse.access_token);
   // };
 
+  // const handleLoginSuccess = async (credentialResponse) => {
+  //   console.log('Credential Response:', credentialResponse);
+  //   if (credentialResponse.access_token) {
+  //     setAccessToken(credentialResponse.access_token);
+  //     setIsAuthenticated(true);
+  //     try {
+  //       await fetchEmails(credentialResponse.access_token);
+  //     } catch (error) {
+  //       console.error('Error in fetchEmails:', error);
+  //     }
+  //   } else {
+  //     console.error('No access token received');
+  //   }
+  // };
+
   const handleLoginSuccess = async (credentialResponse) => {
     console.log('Credential Response:', credentialResponse);
-    if (credentialResponse.access_token) {
-      setAccessToken(credentialResponse.access_token);
+    if (credentialResponse.credential) {
+      setAccessToken(credentialResponse.credential);
       setIsAuthenticated(true);
       try {
-        await fetchEmails(credentialResponse.access_token);
+        await fetchEmails(credentialResponse.credential);
       } catch (error) {
         console.error('Error in fetchEmails:', error);
       }
     } else {
-      console.error('No access token received');
+      console.error('No credential received');
     }
   };
 
@@ -38,17 +53,17 @@ function App() {
     console.log('Login Failed');
   };
 
-  const fetchEmails = async (token) => {
+  const fetchEmails = async (idToken) => {
     try {
-      console.log('Using token:', token);
+      console.log('Using ID token:', idToken);
       const response = await axios.get(
         'https://www.googleapis.com/gmail/v1/users/me/messages',
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${idToken}`,
           },
           params: {
-            q: 'after:' + new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            q: `after:${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}`,
           },
         }
       );
@@ -100,7 +115,8 @@ function App() {
           <GoogleLogin
           onSuccess={handleLoginSuccess}
           onError={handleLoginFailure}
-          scope="https://www.googleapis.com/auth/gmail.readonly"
+          useOneTap
+          flow="implicit"
           />
         ) : (
           <EmailStats emailData={emailData} />
