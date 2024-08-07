@@ -3,7 +3,7 @@ import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 import EmailStats from './EmailStats';
 
-const GOOGLE_CLIENT_ID = '677057704680-c7bf3m37umib4i50a1euvdptcnm4k7gk.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '677057704680-cfa0p3qc6b4nnntng7mjuf32ofr2vfa8.apps.googleusercontent.com';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
