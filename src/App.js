@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState} from 'react';
+//removed useeffect because of warning
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 import EmailStats from './EmailStats';
@@ -8,7 +9,9 @@ const GOOGLE_CLIENT_ID = '677057704680-cfa0p3qc6b4nnntng7mjuf32ofr2vfa8.apps.goo
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [emailData, setEmailData] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
+  // const [accessToken, setAccessToken] = useState(null);
+  const [setAccessToken] = useState(null);
+  //remove this line about accesstoken because of warning
 
   const handleLoginSuccess = async (credentialResponse) => {
     setAccessToken(credentialResponse.access_token);
