@@ -10,9 +10,9 @@ const EmailList = ({ emails }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
-          >
+        
             {email.company} - {email.subject}
-          </a>
+         
         </li>
       ))}
     </ul>
